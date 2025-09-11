@@ -70,6 +70,184 @@ Protobuf امروزه به‌عنوان یک استاندارد کارآمد و 
 
 # مثال
 
+در این بخش، نحوه استفاده از Protocol Buffers را با یک مثال عملی از سیستم مدیریت کاربران نشان می‌دهیم.
+
+## تعریف شِما (.proto)
+
+ابتدا ساختار داده‌های خود را در فایل `user.proto` تعریف می‌کنیم:
+
+```protobuf
+syntax = "proto3";
+
+package com.example;
+
+option java_package = "com.example.protobuf";
+option java_outer_classname = "UserProtos";
+
+message User {
+  int32 id = 1;
+  string name = 2;
+  string email = 3;
+  repeated string phone_numbers = 4;
+  Address address = 5;
+  UserType type = 6;
+}
+
+message Address {
+  string street = 1;
+  string city = 2;
+  string country = 3;
+  int32 postal_code = 4;
+}
+
+enum UserType {
+  REGULAR = 0;
+  PREMIUM = 1;
+  ADMIN = 2;
+}
+```
+
+## کامپایل کردن شِما
+
+برای تولید کد Java از دستور زیر استفاده می‌کنیم:
+
+```bash
+protoc --java_out=./src/main/java user.proto
+```
+
+این دستور کلاس‌های `UserProtos.java` را در مسیر مشخص‌شده ایجاد می‌کند.
+
+## پیاده‌سازی در Java
+
+### ۱. ساخت و پر کردن شیء
+
+```java
+import com.example.protobuf.UserProtos.*;
+
+public class ProtobufExample {
+    public static void main(String[] args) {
+        // initialize Address
+        Address address = Address.newBuilder()
+            .setStreet("خیابان امیرآباد")
+            .setCity("تهران")
+            .setCountry("ایران")
+            .setPostalCode(1234567890)
+            .build();
+        
+        // initialize User
+        User user = User.newBuilder()
+            .setId(12345)
+            .setName("رضا شکلات")
+            .setEmail("reza.shokolat@example.com")
+            .addPhoneNumbers("09123456789")
+            .addPhoneNumbers("02112345678")
+            .setAddress(address)
+            .setType(UserType.PREMIUM)
+            .build();
+        
+        System.out.println("User created: " + user.getName());
+    }
+}
+```
+
+### ۲. سریال‌سازی (Serialization)
+
+```java
+// array to byte
+byte[] serializedData = user.toByteArray();
+System.out.println("User serialized to byte array, size: " + serializedData.length + " bytes");
+
+// saving to file
+try (FileOutputStream output = new FileOutputStream("user.pb")) {
+    user.writeTo(output);
+    System.out.println("User serialized to file user.pb");
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+### ۳. دسریال‌سازی (Deserialization)
+
+```java
+// reconstruct from byte array
+try {
+    User deserializedUser = User.parseFrom(serializedData);
+    System.out.println("Deserialized User Name: " + deserializedUser.getName());
+} catch (InvalidProtocolBufferException e) {
+    e.printStackTrace();
+}
+
+// reading from file
+try (FileInputStream input = new FileInputStream("user.pb")) {
+    User fileUser = User.parseFrom(input);
+    System.out.println("User read from file: " + fileUser.getName());
+    for (String phone : fileUser.getPhoneNumbersList()) {
+        System.out.println("- " + phone);
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+## مقایسه با JSON
+
+برای نشان دادن مزیت Protocol Buffers، همان داده را با JSON مقایسه می‌کنیم:
+
+### JSON معادل:
+```json
+{
+  "id": 12345,
+  "name": "رضا شکلات",
+  "email": "reza.shokolat@example.com",
+  "phone_numbers": ["09123456789", "02112345678"],
+  "address": {
+    "street": "خیابان امیرآباد",
+    "city": "تهران", 
+    "country": "ایران",
+    "postal_code": 1234567890
+  },
+  "type": "PREMIUM"
+}
+```
+
+### نتایج مقایسه:
+- **حجم JSON**: حدود ۳۵۰-۴۰۰ بایت
+- **حجم Protobuf**: حدود ۱۲۰-۱۴۰ بایت  
+- **کاهش حجم**: تقریباً ۶۰-۷۰% کمتر
+- **سرعت پردازش**: تقریباً ۳-۵ برابر سریع‌تر
+
+## نکات مهم
+
+### سازگاری نسخه‌ای
+اگر بخواهیم فیلد جدیدی اضافه کنیم:
+
+```protobuf
+message User {
+  int32 id = 1;
+  string name = 2;
+  string email = 3;
+  repeated string phone_numbers = 4;
+  Address address = 5;
+  UserType type = 6;
+  string salam = 7; // new field
+}
+```
+
+کد قدیمی همچنان کار می‌کند و فیلد جدید را نادیده می‌گیرد.
+این قابلیت باعث می‌شود که بتوانیم به‌راحتی ساختار داده را بدون نگرانی از ناسازگاری تغییر دهیم.
+### مدیریت فایل‌های وابستگی
+
+برای پروژه‌های Maven، وابستگی زیر را اضافه کنید:
+
+```xml
+<dependency>
+    <groupId>com.google.protobuf</groupId>
+    <artifactId>protobuf-java</artifactId>
+    <version>3.24.0</version>
+</dependency>
+```
+
+این مثال نشان می‌دهد که چگونه Protocol Buffers می‌تواند راهکاری قدرتمند و کارآمد برای تبادل داده بین سیستم‌های مختلف باشد.
 
 
 # مراجع
