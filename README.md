@@ -256,3 +256,6 @@ message User {
 * [Google Developers — *Encoding*](https://developers.google.com/protocol-buffers/docs/encoding)
 * [Wikipedia — *Protocol Buffers*](https://en.wikipedia.org/wiki/Protocol_Buffers)
 * [Baeldung — *Introduction to Google Protocol Buffers*](https://www.baeldung.com/google-protocol-buffers)
+* [Google Developers — *Java Generated Code Guide*](https://developers.google.com/protocol-buffers/docs/javatutorial)
+* [Baeldung — *Working with Protocol Buffers in Java*](https://www.baeldung.com/java-protobuf)
+* [GitHub — *Protocol Buffers Java Examples*](https://github.com/protocolbuffers/protobuf/tree/main/java)
